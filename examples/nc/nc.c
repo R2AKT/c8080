@@ -356,7 +356,7 @@ static void NcCopyMoveRename(bool rename) {
                 count++;
             } while (count < copy_buffer_size);
 
-            CpmSetUser(dest_user);  // TODO: Error
+            CpmSetUser(dest_user);
 
             buffer = (void *)panel_b.files;
             while (count > 0) {
@@ -498,9 +498,6 @@ int main(int, char **) {
     // Скрытие курсора
     HideCursor();
 
-    // Для рисования ком. строки
-    MakeString(spaces, ' ', sizeof(spaces) - 1);
-
 #ifdef NC_GLOB
     // Текущий диск и папку в активную панель
     panel_a.drive_user = ((((bios_user & 0xF0) == 0xE0) ? bios_user : CpmGetUser()) << 4) | CpmGetDrive();
@@ -540,7 +537,7 @@ int main(int, char **) {
     for (;;) {
         const uint8_t c = getchar();
         if (!panels_hidden) {
-            if (input_pos == 0) {
+            if (input_size == 0) {
                 switch (c) {
                     case ';':
                         PanelDrawTitle(COLOR_PANEL_TITLE);
@@ -586,7 +583,7 @@ int main(int, char **) {
                     continue;
             }
         }
-        if (input_pos == 0) {
+        if (input_size == 0) {
             switch (c) {
                 case '0':
                     NcBeforeExit();
@@ -602,9 +599,9 @@ int main(int, char **) {
                 NcCommand(input);
                 continue;
             case 0x0A: {  // CTRL+ENTER
-                uint8_t new_size = input_pos + strlen(panel_a.selected_name);
+                const uint8_t new_size = input_size + strlen(panel_a.selected_name);
                 if (new_size < sizeof(input) - 1) {
-                    input_pos = new_size;
+                    input_size = new_size;
                     strcat(input, panel_a.selected_name);
                     NcDrawCommandLine();
                 }
